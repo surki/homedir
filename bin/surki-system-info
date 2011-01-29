@@ -1,0 +1,351 @@
+#!/bin/sh -e
+#
+#    screen-profiles-status
+#    Copyright (C) 2008 Canonical Ltd.
+#
+
+# Let's try to be really "nice" about gathering status:
+renice 10 $$ >/dev/null 2>&1 || true
+ionice -c3 -p $$ >/dev/null 2>&1 || true
+
+# Helper function for updates available
+print_updates() {
+    u=$1
+    s=$2
+    if [ -n "$u" ]; then
+	if [ "$u" -gt 0 ]; then
+	    printf "%d!" "$u"
+	    if [ -n "$s" ]; then
+		if [ "$s" -gt 0 ]; then
+		    printf "%d!" "$s"
+		fi
+	    fi
+	fi
+    fi
+}
+
+updates_available() {
+    EXPIRATION=3600
+
+
+    cache=/var/run/updates-available
+    mycache=/tmp/surki-updates-available
+    now=`date +%s`
+    cache_timestamp=`stat -c "%Y" $cache 2>/dev/null || echo 0`
+    mycache_timestamp=`stat -c "%Y" $mycache 2>/dev/null || echo 0`
+    diff=`expr $now - $cache_timestamp`
+    u=
+    # If global updates-available cache is present, and newer than mycache, and
+    # within expiration, use it, and cache it (to preserve across reboots).
+    # Only available in Jaunty+.
+    if [ -r $cache -a $cache_timestamp -gt $mycache_timestamp -a $diff -lt $EXPIRATION ]; then
+	u=`grep -m 1 "^[0-9]" $cache | sed "s/\s.*$//"`
+	s=`grep -m 2 "^[0-9]" $cache | tail -n 1 | sed "s/\s.*$//"`
+	cp -a "$cache" "$mycache"
+	print_updates $u $s
+        return
+    fi
+
+    # If the user's updates-available cache is present, and less than an hour old,
+    # use it.  (The "hour" part should be configurable)
+    if [ -r $mycache -a -O $mycache ]; then
+	diff=`expr $now - $mycache_timestamp`
+	if [ $diff -lt $EXPIRATION ]; then
+	    print_updates `cat $mycache`
+            return
+	fi
+    else
+	    # Otherwise, let's quickly clear the cache, and then recreate it with
+	    # a really old timestamp (so that it get's updated on next run)
+	    # and exit immediately
+	rm -f $mycache
+	touch -t 197001010000 $mycache
+	exit 0
+    fi
+
+    # If we make it to this point, we actually have to do hard computational
+    # work to calculate updates.  Let's try to be "nice" about it:
+    renice 10 $$ >/dev/null 2>&1 || true
+    ionice -c3 -p $$ >/dev/null 2>&1 || true
+    # If apt-check binary exists, use it
+    if [ -x /usr/lib/update-notifier/apt-check ]; then
+	u=`/usr/lib/update-notifier/apt-check 2>&1 | tail -n 1 | sed "s/;/ /"`
+	echo "$u" > $mycache
+	print_updates $u
+        return
+    fi
+
+    # If apt-get exists, use it
+    if [ -x /usr/bin/apt-get ]; then
+	u=`/usr/bin/apt-get -s -o Debug::NoLocking=true upgrade | grep -c ^Inst`
+	echo "$u" > $mycache
+	print_updates $u
+        return
+    fi
+
+    # If zypper exists, use it
+    if [ -x /usr/bin/zypper ]; then
+        u=`/usr/bin/zypper --no-refresh lu --best-effort | grep 'v |' | wc -l`
+        echo "$u" > $mycache
+        print_updates $u
+        return
+    fi
+
+    # If yum exists, use it
+    if [ -x /usr/bin/yum ]; then
+	u=`/usr/bin/yum list updates | grep -c "updates"`
+	echo "$u" > $mycache
+	print_updates $u
+        return
+    fi
+
+    # If we're here, we have no idea
+    print_updates "?"
+}
+
+search () {
+    local str expr
+    str="$1"
+    expr="$2"
+
+    echo "$str" | sed -n "s/${expr}/\1/p"
+}
+
+battery_info () {
+    BATS=$(ls /proc/acpi/battery)
+    NB=$(echo "$BATS" | wc -l)
+
+    for bat in $BATS; do
+        if [ "$NB" -gt 1 ]; then
+            echo -n "$bat: "
+        fi
+
+        # read files once
+        infofile=$(cat "/proc/acpi/battery/$bat/info")
+        statefile=$(cat "/proc/acpi/battery/$bat/state")
+
+        present=$(search "$infofile" "present: *\(.*\)")
+        if [ "x${present}" = "xno" ]; then
+            echo "n/a"
+            break
+        fi
+
+        full=$(search "$infofile" "last full capacity: *\(.*\) m[AW]h")
+        warn=$(search "$infofile" "design capacity warning: \(.*\) m[AW]h")
+        low=$(search "$infofile" "design capacity low: \(.*\) m[AW]h")
+
+        rem=$(search "$statefile" "remaining capacity: *\(.*\) m[AW]h")
+        if [ "$rem" -lt "$low" ]; then
+            cap_color="{= rk}"
+        elif [ "$rem" -lt "$warn" ]; then
+            cap_color="{= yk}"
+        else
+            cap_color="{= gk}"
+        fi
+
+
+        percent=$(echo "$rem" "$full" | awk '{printf "%.0f",  100*$1/$2}')
+        if [ "$percent" -lt 17 ]; then
+	    per_color="{= rk}"
+        elif [ "$percent" -lt 33 ]; then
+	    per_color="{= Rk}"
+        elif [ "$percent" -lt 50 ]; then
+	    per_color="{= yk}"
+        elif [ "$percent" -lt 67 ]; then
+	    per_color="{= Yk}"
+        elif [ "$percent" -lt 83 ]; then
+	    per_color="{= Gk}"
+        else
+	    per_color="{= gk}"
+        fi
+
+        state=$(search "$statefile" "charging state: *\(.*\)")
+        case $state in
+            charging)
+                sign="+"
+                ;;
+            discharging)
+                sign="-"
+                ;;
+            charged)
+                sign="="
+                ;;
+            *)
+                sign="$state"
+                ;;
+        esac
+
+        printf "\005%s%d%%\005{-}\005%s|%s|\005{-} " "$per_color" "$percent" "$cap_color" "$sign"
+    done
+}
+
+
+network_up () {
+    cache="/tmp/surki-network-up"
+
+    interface=`route -n | tail -n 1 | sed "s/^.* //"`
+    unit="kB/s"
+
+    t1=`stat -c %Y "$cache"` 2>/dev/null || t1=0
+    t2=`date +%s`
+
+    if [ $t2 -le $t1 ]; then
+	rate=0
+    else
+	x1=`cat "$cache"` 2>/dev/null || tx1=0
+	x2=`ifconfig "$interface" | grep "TX bytes" | sed "s/^.*TX bytes://" | sed "s/ .*$//"`
+	echo "$x2" > "$cache"
+	rate=`echo "$t1" "$t2" "$x1" "$x2" | awk '{printf "%.0f", ($4 - $3) / ($2 - $1) / 1024 }'`
+	if [ "$rate" -gt 1024 ]; then
+	    rate=`echo "$rate" | awk '{printf "%.1f", $1/1024}'`
+	    unit="MB/s"
+	fi
+    fi
+    printf "^\005{=b mw}$rate\005{-}\005{= mw}$unit\005{-} "
+
+}
+
+network_down () {
+    cache="/tmp/surki-network-down"
+    interface=`route -n | tail -n 1 | sed "s/^.* //"`
+    unit="kB/s"
+
+    t1=`stat -c %Y "$cache"` 2>/dev/null || t1=0
+    t2=`date +%s`
+
+    if [ $t2 -le $t1 ]; then
+	rate=0
+    else
+	x1=`cat "$cache"` 2>/dev/null || tx1=0
+	x2=`ifconfig "$interface" | grep "RX bytes" | sed "s/^.*RX bytes://" | sed "s/ .*$//"`
+	echo "$x2" > "$cache"
+	rate=`echo "$t1" "$t2" "$x1" "$x2" | awk '{printf "%.0f", ($4 - $3) / ($2 - $1) / 1024 }'`
+	if [ "$rate" -gt 1024 ]; then
+	    rate=`echo "$rate" | awk '{printf "%.1f", $1/1024}'`
+	    unit="MB/s"
+	fi
+    fi
+    printf "v\005{=b mw}$rate\005{-}\005{= mw}$unit\005{-} "
+}
+
+P="$1"
+
+case "$P" in
+    load-average)
+        printf "\005{= Yk}%s\005{-} " $(cat /proc/loadavg | cut -d " " -f -1)
+        ;;
+
+    mem-used)
+        free | awk '/buffers\/cache:/ {printf "\005{= gW}%.0f%%\005{-} ", 100*$3/($3 + $4)}'
+        ;;
+
+    reboot-required)
+        [ -e /var/run/reboot-required ] && printf "(@)"
+        ;;
+
+    updates-available)
+        #TODO fix it and make it faster
+	updates_available 
+        ;;
+
+    arch)
+        printf "%s " $(uname -m)
+        ;;
+
+    battery)
+        #TODO fix
+        battery_info
+        ;;
+
+    network-down)
+        network_down
+        ;;
+
+    network-up)
+        network_up
+        ;;
+
+    processes)
+        printf "\005{= yk}%s&\005{-} " $(ps -e | wc -l)
+        ;;
+
+    uptime)
+        u=$(sed "s/\..*$//" /proc/uptime)
+        if [ "$u" -gt 86400 ]; then
+	    echo "$u" | awk '{printf "%dd%dh", $1 / 86400, ($1 % 86400)/3600 }'
+        elif [ "$u" -gt 3600 ]; then
+	    echo "$u" | awk '{printf "%dh%dm", $1 / 3600, ($1 % 3600 )/60}'
+        elif [ "$u" -gt 60 ]; then
+	    echo "$u" | awk '{printf "%dm%ds", $1 / 60, $1 % 60 }'
+        else
+	    printf "%ds" "$u"
+        fi
+        ;;
+
+    whoami)
+        printf "\005{=b }%s\005{-}" $(whoami)
+        ;;
+
+    wifi-quality)
+        #TODO Check if interface is wireless, or else bail out
+        interface=`route -n | tail -n 1 | sed "s/^.* //"`
+        bitrate=`iwconfig "$interface" 2>/dev/null | grep "Bit Rate." | sed "s/^.*Bit Rate.//" | sed "s/ .*$//g"`
+        [ -z "$bitrate" ] && bitrate="0"
+        quality=`iwconfig "$interface" 2>/dev/null | grep "Link Quality=" | sed "s/^.*Link Quality=//" | sed "s/ .*$//g"`
+        echo "$bitrate" "$quality" | awk '{printf "\005{=b Ck}%s\005{-}\005{= Ck}Mb/s,\005{-}\005{=b Ck}%.0f\005{-}\005{= Ck}%%\005{-} ", $1, $2}'
+        ;;
+    
+    system-info)
+        #whoami@hostname
+        at=
+        who=$(whoami) 
+        [-n $who] || at="@"
+        hostinfo="$who$at"$(hostname -s)
+
+        #architecture
+        arch=$(uname -m)
+
+        # cpu-frequency
+        mhz=`grep -m 1 "^cpu MHz" /proc/cpuinfo | awk -F"[:.]" '{print $2}'` || mhz=`grep -m 1 "^clock" /proc/cpuinfo | awk -F"[:.]" '{print $2}'`
+        if [ $mhz -ge 1000 ]; then
+	    speed=$(echo $mhz | awk '{ printf "%.1f", $1 / 1000 }')
+	    unit="GHz"
+        else
+	    speed="$mhz"
+	    unit="MHz"
+        fi
+        cpufreq=$speed$unit
+        
+	    # cpu count
+        cpucount=`grep -c "^processor.*:" /proc/cpuinfo`
+
+
+        # memory info
+        mem=`free | grep -m 1 "^Mem:" | awk '{print $2}'`
+        if [ $mem -ge 1048576 ]; then
+	    mem=$(echo "$mem" | awk '{ printf "%.1f", $1 / 1048576 }')
+	    unit="GB"
+        elif [ $mem -ge 1024 ]; then
+	    mem=$(echo "$mem" | awk '{ printf "%.0f", $1 / 1024 }')
+	    unit="MB"
+        else
+	    mem="$mem"
+	    unit="KB"
+        fi
+        meminfo=$mem$unit$comma
+
+        printf "\005{=b bW}%s(%s/%sx%s/%s)\005{-}" "$hostinfo" "$arch" "$cpufreq" "$cpucount" "$meminfo"
+        ;;
+
+    mail-check)
+        # newmails=$(chkmail)
+        # newmails=$(find ~/Mail/GMail/INBOX/ -name '*,' | wc -l)
+        # [ "$newmails" -gt "0" ] && printf "\005{=b rW}%d New Mail\005{-}" "$newmails"
+        ;;
+
+    *)
+	exit 1
+	;;
+esac
+
+

@@ -1,0 +1,44 @@
+
+# Download directory
+directory = /media/data_storage/downloading/
+
+execute_log = "/home/suresh/var/log/rtorrent.log"
+
+# Range of ports
+port_range = 56881-56889
+port_random = no
+
+use_udp_trackers = yes
+
+# No proxy
+http_proxy = ""
+
+# Encryption
+encryption = allow_incoming,enable_retry,prefer_plaintext
+
+# Move finished torrents
+#on_finished = move_complete,"execute==mv,-u,$d.get_base_path=,/media/data_storage/Movies/files/;d.set_directory=/media/data_storage/Movies/files/;execute=ln,-S,$d.get_base_path="
+#on_finished = zlink1,"execute=ln,-s,/media/data_storage/Movies/files/$d.get_name=,/media/data_storage/download_finished/"
+on_finished = move_complete,"execute=mv,-u,$d.get_base_path=,/media/data_storage/Movies/files/;d.set_directory=/media/data_storage/Movies/files/"
+system.method.set_key = event.download.finished,zlink3,"execute=/home/suresh/bin/rtorrent_finished.sh,$d.get_name=;d.set_directory=/media/data_storage/Movies/files/"
+
+# Auto start the torrent files from this directory
+schedule = watch_directory,10,10,load_start=/media/data_storage/torrents/KG/*.torrent
+schedule = watch_directory_2,10,10,load_start=/media/data_storage/torrents/hd-torrents.org/*.torrent
+schedule = watch_directory_3,10,10,load_start=/media/data_storage/torrents/tmp/*.torrent
+
+# Show downloads currently uploading or downloading in active view. Update every 30 seconds.
+schedule = filter_active,30,30,"view_filter = active,\"or={d.get_up_rate=,d.get_down_rate=}\""
+
+# Show downloads currently downloading in active view. Update every 30 seconds.
+schedule = filter_seeding,30,30,"view_filter = seeding,d.get_up_rate="
+
+# Session stuff
+schedule = session_save,240,300,session_save=
+session = /media/data_storage/torrents/rtorrent_session/
+session_on_completion = yes
+
+encoding_list = UTF-8
+
+#scgi_port = 127.0.0.1:5000
+#scgi_local = /var/.rtorrent/rpc.socket

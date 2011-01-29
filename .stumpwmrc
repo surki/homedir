@@ -1,0 +1,479 @@
+;;;; -*- Mode: Lisp -*-
+
+;; References
+;; http://paste.lisp.org/display/73174
+
+;; ;;Declare what this file is for.
+(in-package :stumpwm)
+
+;; Home diretory
+(defparameter *home-dir* (getenv "HOME"))
+(defparameter *hostname* (getenv "HOSTNAME"))
+
+;; Color
+(set-bg-color "black")
+(set-fg-color "green")
+
+;; Frame numbers
+(setf *frame-number-map* "asdfgqwert")
+
+;; Focus on mouse click
+(setf *mouse-focus-policy* :click)
+
+;; Print screen
+(define-key *top-map* (kbd "SunPrint_Screen") "exec scrot /tmp/screenshot.png")
+(define-key *top-map* (kbd "C-SunPrint_Screen") "exec scrot /tmp/screenshot_%Y-%m-%d_%H-%M-%S.png")
+(define-key *top-map* (kbd "M-SunPrint_Screen") "exec scrot -s /tmp/screenshot.png")
+(define-key *top-map* (kbd "C-M-SunPrint_Screen") "exec scrot -s /tmp/screenshot_%Y-%m-%d_%H-%M-%S.png")
+
+;; Special function keys
+(define-key *top-map* (kbd "XF86Launch1") "fselect 1")
+(define-key *top-map* (kbd "XF86Launch2") "fselect 2")
+(define-key *top-map* (kbd "XF86Launch3") "fselect 3")
+(define-key *top-map* (kbd "XF86Launch4") "fselect 4")
+(define-key *top-map* (kbd "XF86Launch5") "fselect 5")
+(define-key *top-map* (kbd "XF86Mail") "mail")
+
+;; aumixer
+(load (concat *home-dir* "/src/stumpwm/contrib/amixer.lisp"))
+(define-key *top-map* (kbd "XF86AudioLowerVolume") "amixer-Master-1-")
+(define-key *top-map* (kbd "XF86AudioRaiseVolume") "amixer-Master-1+")
+(define-key *top-map* (kbd "XF86AudioMute") "amixer-Master-toggle")
+(define-key *top-map* (kbd "M-XF86AudioLowerVolume") "amixer-PCM-1-")
+(define-key *top-map* (kbd "M-XF86AudioRaiseVolume") "amixer-PCM-1+")
+(define-key *top-map* (kbd "M-XF86AudioMute") "amixer-PCM-toggle")
+(define-key *top-map* (kbd "C-XF86AudioLowerVolume") "amixer-Front-1-")
+(define-key *top-map* (kbd "C-XF86AudioRaiseVolume") "amixer-Front-1+")
+(define-key *top-map* (kbd "C-XF86AudioMute") "amixer-Front-toggle")
+
+;; Browser
+(defcommand conkeror () ()
+  (run-or-raise "conkeror" '(:class "Conkeror")))
+
+(defcommand conkeror-unfocus () ()
+  (run-shell-command "conkeror -f unfocus" t))
+
+;; Battery status
+(defcommand show-battery () ()
+  (echo-string (current-screen) (run-shell-command "acpi" t)))
+
+;; Lock screen
+(defcommand lock-screen () ()
+  (run-shell-command "xscreensaver-command -lock" t))
+
+;; irc
+(defcommand irc () ()
+  (run-or-raise
+   "urxvt -title irc -e screen -U -dRR -S IM -c ~/.screenrc.irc"
+   '(:title "irc"  :instance "urxvt" :class "URxvt")))
+
+;; Launch/Resume a screen session
+(defcommand gnuscreen () ()
+  (run-or-raise
+   "urxvt -title gnuscreen -e byobu -U -dRR -S gnuscreen"
+   '(:title "gnuscreen" :instance "urxvt" :class "URxvt")))
+
+;; Launch/Resume a virtualbox screen session
+(defcommand vboxsession () ()
+  (run-or-raise
+   "urxvt -title vboxsession -e screen -U -dRR -S vboxsession -c ~/.screenrc.vbox"
+   '(:title "vboxsession" :instance "urxvt" :class "URxvt")))
+
+;; torrent
+(defcommand torrents () ()
+  (run-or-raise
+   "urxvt -title torrents -e ssh -t home PATH=$PATH:~/bin screen -U -dRR -S torrents -c ~/.screenrc.rtorrent"
+   '(:title "torrents" :instance "urxvt" :class "URxvt")))
+
+;; Mutt
+(defcommand mutt () ()
+  (run-or-raise
+   "urxvt -title Mutt -e ssh -t home mutt"
+   '(:title "Mutt" :instance "urxvt" :class "URxvt")))
+
+;; Mail
+;; (defcommand mail  () ()
+;;   (run-or-raise
+;;    "urxvt -title mail -e screen -c ~/.screenrc.mail -U -dRR -S mail"
+;;    '(:title "mail" :instance "urxvt" :class "URxvt"))
+;;    :all-screens t
+;;    :all-groups t)
+
+(defcommand mail  () ()
+  (run-or-raise
+   "emacs --no-desktop -f wl -f menu-bar-mode -title \"Email\""
+   '(:title "Email" :class "Emacs"))
+   :all-screens t
+   :all-groups t)
+
+(defcommand gotosandbox  () ()
+  (run-or-raise
+   "urxvt -title sandbox -cd /gamedev/gamecore/tools/ -e sudo ./g2s"
+   '(:title "sandbox" :instance "urxvt" :class "URxvt"))
+   :all-screens t
+   :all-groups t)
+
+;; fortune
+(defcommand fortune () ()
+  (message-no-timeout
+   (run-shell-command
+    "fortune | cowsay -n | sed s/\\\\^/^^/g" t)))
+
+;; Launch emacs
+;; (defcommand emacs () ()
+;;   (run-or-raise
+;;    "urxvt -title emacs -e screen -U -dRR -S emacs -c ~/.screenrc.emacs"
+;;    '(:title "emacs" :instance "urxvt" :class "URxvt")))
+;; (defcommand emacs () ()
+;;   (run-or-raise
+;;    "emacs -c ~/.screenrc.emacs"
+;;    '(:title "emacs" :instance "urxvt" :class "URxvt")))
+(defcommand emacs  () ()
+  (run-or-raise
+   "emacs -title \"Emacs\""
+   '(:title "Emacs"))
+   :all-screens t
+   :all-groups t)
+
+;; Google X selection
+(defcommand googleX () ()
+  (run-shell-command
+   (concat  "conkeror"
+            " \"http://www.google.com/search?q="
+            (get-x-selection) "\"") t))
+
+;; prompt the user for an interactive command. The first arg is an
+;; optional initial contents.
+(defcommand colon1 (&optional (initial "")) (:rest)
+  (let ((cmd (read-one-line (current-screen) ": " initial)))
+    (when cmd
+      (eval-command cmd t))))
+
+(defmacro make-web-jump (name url-prefix)
+  `(defcommand ,name (search) ((:rest ,(string-capitalize (string-downcase (concatenate 'string (symbol-name name) ": ")))))
+     (run-shell-command (format nil "conkeror ~A=~A"
+                                          ,url-prefix (substitute #\+ #\Space search)))))
+(make-web-jump imdb "http://www.imdb.com/find?q")
+(make-web-jump google "http://www.google.com/search?q")
+
+(defcommand googtranslate () ()
+  (message-no-timeout
+   (run-shell-command (concat "googletrans.sh \"" (get-x-selection) "\"") t)))
+
+(defun startup () ()
+  ( fortune )
+  (run-shell-command "xscreensaver &")
+  (run-shell-command "gnome-panel &")	
+)
+
+(stumpwm:add-hook stumpwm:*start-hook* 'startup)
+
+;; modeline stuff
+
+;; Network
+;;(load (concat *home-dir* "/src/stumpwm/contrib/net.lisp"))
+
+(setf *mode-line-background-color* "Black"
+      *mode-line-foreground-color* "Palegreen3"
+      *mode-line-border-color*     "Palegreen3"
+      *mode-line-timeout*          10
+      *mode-line-position* :top
+      *window-format* "[%n%s%m%30t]"
+      *screen-mode-line-format*
+      (list "%w"))
+
+;; (unless (head-mode-line (current-head))
+;;   (mode-line))
+
+(define-key *root-map* (kbd "E") "mail") ;; email
+(define-key *root-map* (kbd "c") "gnuscreen") ;; screen
+(define-key *root-map* (kbd "C") "exec urxvt")
+(define-key *root-map* (kbd "i") "irc")
+(define-key *root-map* (kbd "L") "lock-screen")
+(define-key *root-map* (kbd "*") "show-battery")
+(define-key *root-map* (kbd "q") "conkeror") ;;browser
+(define-key *root-map* (kbd "u") "conkeror") ;;browser
+(define-key *top-map* (kbd "XF86HomePage") "conkeror")
+(define-key *top-map* (kbd "M-TAB") "fnext") ;; Switch to next frame
+(define-key *top-map* (kbd "M-ISO_Left_Tab") "snext") ;; Switch to next screen
+(define-key *top-map* (kbd "C-M-Left") "gprev") ;; Switch to next/previous group
+(define-key *top-map* (kbd "C-M-Right") "gnext")
+(define-key *top-map* (kbd "C-M-TAB") "gprev")
+(define-key *top-map* (kbd "C-M-TAB") "gnext")
+;;(define-key *root-map* (kbd "C-s") "colon1 exec urxvt -e ssh ")
+(define-key *root-map* (kbd "M-s") "google")
+(define-key *root-map* (kbd "I") "imdb")
+(define-key *root-map* (kbd "M") "mode-line")
+(define-key *root-map* (kbd "T") "googtranslate")
+(define-key *root-map* (kbd "v") "vboxsession") ;;virtualbox session
+(define-key *root-map* (kbd "V") "version")
+(define-key *root-map* (kbd "g") "gotosandbox")
+(define-key *root-map* (kbd "D") "torrents")
+(define-key *root-map* (kbd "b") "windowlist")
+(define-key *root-map* (kbd "B") "banish")
+
+;; Clear rules
+(clear-window-placement-rules)
+
+;; Load swank.
+(load "/home/suresh/src/slime/swank-loader.lisp")
+;; (swank-loader:init) 
+;; (swank:create-server :dont-close t)
+
+;; Temp fix for run-or-raise windows from float group.
+;; user.lisp
+(defun run-or-raise (cmd props &optional (all-groups *run-or-raise-all-groups*) (all-screens *run-or-raise-all-screens*))
+  "Run the shell command, @var{cmd}, unless an existing window
+matches @var{props}. @var{props} is a property list with the following keys:
+
+@table @code
+@item :class
+Match the window's class.
+@item :instance
+Match the window's instance or resource-name.
+@item :role
+Match the window's @code{WM_WINDOW_ROLE}.
+@item :title
+Match the window's title.
+@end table
+
+By default, the global @var{*run-or-raise-all-groups*} decides whether
+to search all groups or the current one for a running
+instance. @var{all-groups} overrides this default. Similarily for
+@var{*run-or-raise-all-screens*} and @var{all-screens}."
+  (labels
+      ;; Raise the window win and select its frame.  For now, it
+      ;; does not select the screen.
+      ((goto-win (win)
+         (let* ((group (window-group win))
+                (frame (unless (typep win 'float-window) (window-frame win)))
+                (old-frame (when frame (tile-group-current-frame group))))
+           (when frame
+             (frame-raise-window group frame win))
+           (focus-all win)
+           (unless (eq frame old-frame)
+             (show-frame-indicator group)))))
+    (let* ((matches (find-matching-windows props all-groups all-screens))
+           ;; other-matches is list of matches "after" the current
+           ;; win, if current win matches. getting 2nd element means
+           ;; skipping over the current win, to cycle through matches
+           (other-matches (member (current-window) matches))
+           (win (if (> (length other-matches) 1)
+                    (second other-matches)
+                    (first matches))))
+      (if win
+          (goto-win win)
+          (run-shell-command cmd)))))
+
+;; Load local machine specific configuration file
+(load (concat *home-dir* "/.stumpwmrc.local"))
+
+;; (load "/home/suresh/src/slime/swank-loader.lisp")
+;; (swank-loader:init)
+;; (defcommand swank ()
+;;   (swank:create-server :port 4005
+;;                        :style swank:*communication-style*
+;;                        :dont-close t)
+;;   (echo-string (current-screen) "Starting swank."))
+;; (define-key *root-map* (kbd "C-s") "swank")       
+
+;; (define-frame-preference "Default"
+;;    (0 nil nil :class "emacs")
+;;    (0 nil nil :class "URxvt")
+;;    (1 nil nil :class "Conkeror"))
+
+;;        message-no-timeout (run-shell-command "fortune drugs humorists men-women paradoxum disclaimer ethnic art work fortunes literature 10% ascii-art 10% debian definitions 10% computers 20% linux 15% debian-hints 15% linuxcookie | cowsay -n | sed s/\\\\^/^^/g" t))
+;;;        (run-shell-command "xsetroot  -fg darkgreen -bg black -name root-window")
+
+;; ;; Web jump (works for Google and Imdb)
+;; (defmacro make-web-jump (name prefix)
+;;   `(defcommand ,name (search) ((:rest ,(concatenate 'string name " search: ")))
+;;     (substitute #\+ #\Space search)
+;;     (run-shell-command (concatenate 'string ,prefix search))))
+
+;; (make-web-jump google "conkeror http://www.google.fr/search?q=")
+;; (make-web-jump "imdb" "firefox http://www.imdb.com/find?q=")
+
+;; C-t M-s is a terrble binding, but you get the idea.
+;; (define-key *root-map* (kbd "M-s") "google")
+;; (define-key *root-map* (kbd "i") "imdb")
+
+;; (make-web-jump "imdb" "firefox http://www.imdb.com/find?q=")
+;; TODO:
+;; (defcommand display-urgent-windows () ()
+;;   (message "~a" (screen-urgent-windows (current-screen))))
+
+
+;; TODO
+;; (setf *mode-line-fmts* '(((:eval (format-expand *time-format-string-alist*
+;;                                                   "%a %b %e %Y - %k:%M:%S"))
+;;                             " - %c (%f) - [^B%n^b ^B%u^b ] %W - %m - %D")
+;;                             "[^B%n^b ^B%u^b ] %W"))
+;; (setf *screen-mode-line-format*
+;;       (list "%w | " '(:eval (run-shell-command "date" t))))
+
+;;http://deftsp-dotfiles.googlecode.com/svn/trunk/.stumpwmrc
+;; (setf *window-border-style* :thick)     ; :thick :thin :tight :none
+
+;; TODO dzen2 and notifications
+;; (load (concat *home-dir* "/src/stumpwm/contrib/notifications.lisp"))
+;; (define-key *root-map* (kbd "N") '*notifications-map*)
+
+;;; Modeline
+;; (setf *mode-line-background-color* BACKGROUND-COLOR
+;;       *mode-line-border-color* BORDER-COLOR
+;;       *mode-line-foreground-color* "forestgreen"
+;;       *mode-line-border-width* 0        ; "How thick shall the mode line border be?"
+;;       ;; "How much padding should be between the mode line text and the sides?"
+;;       *mode-line-pad-x* 10
+;;       *mode-line-pad-y* 10
+;;       *mode-line-position* :top         ; bottom
+;;       *mode-line-timeout* 10)           ; Update every 10 seconds if nothing else has triggered it already.
+
+
+;; (defun fix-str-length (str length)
+;;   (if (> (length str) length)
+;;       (cat (subseq str 0 (- length 2)) ".*")
+;;       (format nil "~va" length str)))
+
+;; (defun fmt-window-list (ml)
+;;   "Using *window-format*, return a 1 line list of the windows, space seperated."
+;;   (fix-str-length (format nil "~{~a~^ ~}"
+;;                           (mapcar (lambda (w) (format-expand *window-formatters* *window-format* w))
+;;                                   (sort-windows (mode-line-current-group ml)))) 47))
+
+;; (setf *window-name-source* :title)
+;; (setf *window-format* "%m%n%s%50c")
+
+;; (defun current-window-tilte ()
+;;   (let ((current-window (current-window)))
+;;     (if current-window
+;;         (window-title current-window)
+;;         (cat "No Window In ::"
+;;              (group-name (current-group)) "::"))))
+
+
+;; (defun window-tilte-and-notifications-with-fix-length (length notifications-length)
+;;   (if (< length notifications-length)
+;;       (error "length should bigger than notifications-length!"))
+;;   (if notifications
+;;       (cat (fix-str-length (current-window-tilte) (- length
+;;                                                      notifications-length
+;;                                                      3))
+;;            " ["
+;;            (fix-str-length  (format nil "~{ ~a~#[~:;;~]~}" notifications)  notifications-length)
+;;            "]")
+;;       (fix-str-length (current-window-tilte) length)))
+
+
+;; (setf *screen-mode-line-format* (list  "^5*"
+;;                                        `(:eval (window-tilte-and-notifications-with-fix-length 56 20))
+;;                                        ;; "%N" ;notifications
+;;                                        "^n"
+;;                                        "^6*%w ^n"
+;;                                        " %c " ; cpu
+;;                                        `(:eval (check-mail "/home/tsp/Mail/inbox/new/*.*"))
+;;                                        " ^2*"
+;;                                        `(:eval (stumpwm::format-time-string "%a %b %e %k:%M %Y"))
+;;                                        "^n"))
+
+;; ;; Switch mode-line on
+;; (if (not (head-mode-line (current-head)))
+;;     (toggle-mode-line (current-screen) (current-head)))
+
+;; ;; mode-line-click-hook
+;; (defun mode-line-click-hook (ml button x y)
+;;   (let* ((head (mode-line-head ml))
+;;          (hn (head-number head)))
+;;     (run-shell-command (format nil "echo '^fg(red)YOU^fg() CLICKED button:~d x:~d y:~d' | dzen2 -xs ~D -p 3"
+;;                                button x y
+;;                                (1+ hn)))))
+;; ;;(stumpwm:add-hook stumpwm:*start-hook* 'startup)
+;; (stumpwm:add-hook stumpwm:*mode-line-click-hook* 'mode-line-click-hook)
+
+
+;; ;;; cpu
+;; (load-module "cpu")
+;; (setq *cpu-usage-bar-width* 12)
+
+;; (defun fmt-cpu-usage (ml)
+;;   "Returns a string representing current the percent of average CPU
+;;   utilization."
+;;   (declare (ignore ml))
+;;   (let ((cpu (truncate (* 100 (current-cpu-usage)))))
+;;     (format nil "CPU:^[~A~3D%^] " (bar-zone-color cpu) cpu)))
+
+;; Input box colors
+;;(set-bg-color BACKGROUND-COLOR)
+;;(set-fg-color "forestgreen")
+;;(set-border-color "SteelBlue")
+;;(set-msg-border-width 0)
+;;(setf *input-window-gravity* :top-right)
+
+
+;; (load-module "battery-portable")
+;; (load-module "disk")
+;; (load "/home/suresh/projects/stumpwm/contrib/cpu.lisp")
+;; (setf *screen-mode-line-format* (list "%c %t %B %D"))
+
+
+
+
+
+
+
+
+;; (load-module "wifi")
+;; (setf *format-time-string-default* "%a %b %e %k:%M")
+;; (setf *screen-mode-line-format* (list `(:eval (format-time-string))))
+;;;                                       "(%I))")) ; wifi
+
+;;;Web browsing commands
+;;Get the X selection and order the GUI browser to open it. Presumably it is a HTTP address.
+;;;    (defcommand open-selection-browser () ()
+;;;      (run-shell-command (cat X-WWW-BROWSER (get-x-selection))))
+
+;;;    ;;Ask user for a search string and search Wikipedia for it.
+;;;    (define-stumpwm-command "wikipedia" ((search-string :string "wikipedia " :string))
+;;;      (check-type search-string string)
+;;;      (run-shell-command (cat "surfraw wikipedia " search-string)))
+
+;;;    ;;Get the X selection and search for it in Wikipedia.
+;;;    (define-stumpwm-command "wikipedia-selection" ()
+;;;      (run-shell-command (cat "exec surfraw wikipedia " (get-x-selection))))
+
+;;;    ;;Ask user for a search string and search Google for it.
+;;;    (define-stumpwm-command "google" ((search-string :string "google " :string))
+;;;      (check-type search-string string)
+;;;      (run-shell-command (cat "surfraw google " search-string)))
+
+;;;    ;;Get the X selection and search for it through Google.
+;;;    (define-stumpwm-command "google-selection" ()
+;;;      (run-shell-command (cat "exec surfraw google " (get-x-selection))))
+
+;;;    ;;Ask user for a search string and search the Internet Archive/Wayback Machine for it.
+;;;    (define-stumpwm-command "wayback" ((search-string :string "wayback " :string))
+;;;      (check-type search-string string)
+;;;      (run-shell-command (cat "surfraw wayback " search-string)))
+
+;;;    ;;Get the X selection (an HTTP address) and search for it in the Internet Archive.
+;;;    (define-stumpwm-command "wayback-selection" ()
+;;;      (run-shell-command (cat "exec surfraw wayback " (get-x-selection))))
+
+;;;    ;;Ask user for a search string and look for a Debian package of the same name.
+;;;    (define-stumpwm-command "debpackages" ((search-string :string "debpackages " :string))
+;;;      (check-type search-string string)
+;;;      (run-shell-command (cat "surfraw debpackages " search-string)))
+
+;;;    ;;Ask user for a search string and search the Debian BTS for a package of that name.
+;;;    (define-stumpwm-command "debbugs" ((search-string :string "debbugs " :string))
+;;;      (check-type search-string string)
+;;;      (run-shell-command (cat "surfraw debbugs " search-string)))
+
+
+
+
+
+
+
+

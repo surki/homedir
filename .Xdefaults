@@ -1,0 +1,18 @@
+URxvt*font: xft:Bitstream Vera Sans Mono:size=11
+URxvt*boldFont: xft:Bitstream Vera Sans Mono:size=11:style=Roman
+URxvt*background: Black
+URxvt*foreground: White
+URxvt*scrollBar: False
+URxvt*scrollTtyOutput: False
+URxvt*scrollTtyKeypress: True
+URxvt*secondaryScroll: True
+URxvt*saveLines: 8000
+URxvt*selection.pattern-0: ^([^:]+):
+URxvt.perl-ext-common: default,matcher
+URxvt.urlLauncher: conkeror
+URxvt.matcher.rend.0: Uline fg8 bg1
+URxvt.searchable-scrollback: M-?
+! URxvt*keysym.C-Ret: \033<C-return>
+! URxvt.keysym.M-C-1: command:\033]710;suxuseuro\007\033]711;suxuseuro\007
+! URxvt.keysym.M-C-2: command:\033]710;9x15bold\007\033]72;9x15bold\007
+! URxvt.colorUL: #86a2be

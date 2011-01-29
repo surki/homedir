@@ -1,0 +1,46 @@
+# Directory bookmarks
+#source /etc/cdargs-bash.sh
+
+if [ "$PS1" ] ; then  
+   mkdir -p -m 0700 /dev/cgroup/cpu/user/$$ > /dev/null 2>&1
+   echo $$ > /dev/cgroup/cpu/user/$$/tasks
+   echo "1" > /dev/cgroup/cpu/user/$$/notify_on_release
+fi
+
+umask 0022
+
+#alias ec to emacs client to enable emacs multi tty support
+#alias ec='ec.sh'
+#alias ect='ec.sh -t'
+
+export PATH=$PATH:~/bin:/usr/sbin/:/sbin/:
+
+# CVS settings
+# export CVS_RSH="ssh"
+# export CVSROOT=":ext:sponnusa@blizzard.cs.hut.fi:/u/9/sponnusa/cvsroot"
+# export EDITOR="ect.sh"
+
+export GREP_OPTIONS='--color=auto'
+export LS_OPTIONS='--color=auto'
+export PS1='\[\e[1;32m\][\u@\h \W]\$\[\e[0m\] '
+#export LS_COLORS="di=01;36:ln=01;34"
+
+export GTAGSLIBPATH=/gamedev/gamecore:/gamedev/gameapi:/gamedev/oscore/servers:/gamedev/oscore/libraries:/gamedev/sandbox
+export GTAGSFORCECPP=1
+
+function maketags()
+{
+    cd $1 && ( find . -regex ".*\.[cChH]\(pp\)?" -print | etags -) && cd -
+}
+
+xset b off
+xset b 0 0 0
+
+alias qemacs='emacs -Q'
+alias qemacsnw='emacs -Q -nw'
+export EDITOR="qemacs"
+
+set bell-style visible
+#sshtunneltohome
+
+fortune | cowsay -n

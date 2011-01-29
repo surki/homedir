@@ -1,0 +1,7 @@
+text/html; conkeror %s
+application/pdf; evince %s
+image/jpeg; /usr/bin/gthumb --viewer %s
+image/gif; /usr/bin/gthumb --viewer %s
+image/png; /usr/bin/gthumb --viewer %s
+text/html; links2 %s; nametemplate=%s.html
+text/html; links2 -dump %s; nametemplate=%s.html; copiousoutput

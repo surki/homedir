@@ -1,0 +1,11 @@
+source $HOME/.screenrc
+screen -t gw1 ssh vboxgw1
+screen -t gw2 ssh vboxgw2
+screen -t rendserv ssh vboxrendserv
+screen -t h1c1 ssh vboxh1c1
+screen -t h1c2 ssh vboxh1c2
+screen -t h2c1 ssh vboxh2c1
+screen -t h2c2 ssh vboxh2c2
+
+
+

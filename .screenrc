@@ -1,0 +1,132 @@
+startup_message off
+escape ^\\
+
+
+termcapinfo xterm|xterms|xs|rxvt ti@:te@
+attrcolor b ".I"
+#termcapinfo xterm 'Co#256:AB=\E[48;5;%dm:AF=\E[38;5;%dm'
+#termcapinfo urxvt-unicode 'Co#256:AB=\E[48;5;%dm:AF=\E[38;5;%dm'
+# erase background with current bg color
+defbce "on"
+vbell off
+altscreen on
+defscrollback 10000
+term screen-256color-bce
+
+# backtick 101 86400 86400 surki-system-info system-info
+# backtick 102 2 2 surki-system-info reboot-required
+# backtick 103 10 10 surki-system-info updates-available
+# backtick 104 60 60 surki-system-info uptime
+# backtick 105 30 30 surki-system-info battery
+# backtick 106 2 2 surki-system-info load-average
+# backtick 107 10 10 surki-system-info mem-used
+# backtick 108 2 2 surki-system-info network-up
+# backtick 109 2 2 surki-system-info network-down
+# backtick 110 2 2 surki-system-info wifi-quality
+# backtick 111 10 10 surki-system-info mail-check
+
+# Window tabs, second to last line
+# caption always "%{wK}%?%-Lw%?%{bw}%n*%f %t%?(%u)%?%{wK}%?%+Lw%?"
+
+# Status string, last line
+hardstatus alwayslastline
+# TODO: Make network usage constant width and include: %113`%114`
+#       Fix wifi script and include: %115`
+# hardstatus string '%101`%{= Kw} %= %{=b bW}%102`%{-} %{=b rW}%111`%{-}%{=b rW}%103`%{-} %{= wb}%104`%{-} %105` %106`%107`%Y-%m-%d %0c:%s'
+
+# http://snarfed.org/space/Emacs%20keybindings%20in%20GNU%20screen%27s%20copy-scrollback%20mode
+# emacs keybindings for navigation in copy mode
+markkeys ^B=Y:^F=V:h=^B:l=^F:0=^A:$=^E
+
+# C-space sets mark. markkeys does it in screen 4.0 and higher, but 3.9x
+# needs the bindkey command. (note the ^@ escape sequence for C-space.)
+markkeys ' '=^@
+# bindkey -m ^@ stuff ' '
+
+# # page up and page down
+bindkey -m -k kP stuff Y
+bindkey -m -k kN stuff V
+
+# # failed attempt to make C-space work in i-search too
+# # bindkey -m ^@ eval "stuff \033" "stuff ^@"
+
+# special hack for C-e, since it should go *past*
+# the last char. -m means this is for copy mode only.
+bindkey -m ^e stuff "$^f"
+
+# C-g and other keys just quit copy mode. Esc does nothing.
+markkeys \033=\015=^G=^D=h=j=k=l=H=M=L=G=g=y=c=v=a=x=b=e=B=E=w
+markkeys @=\033
+
+# control arrows move by words. (set B, e, and w to F keys so that i can
+# use them to move by words, but they themselves still quit copy mode.)
+markkeys B=[:E=]:b={:e=}:w=>
+bindkey -m ^[Od stuff {  #"[[}"
+bindkey -m ^[Oc stuff ]  #"}]^f"
+
+# http://snarfed.org/space/synchronizing%20GNU%20screen%27s%20paste%20buffer%20and%20the%20X%20selection
+# set the second mark, write to the screen-exchange
+# file, and use xsel to synchronize the paste buffer
+# with the X selection.
+#bindkey -m > eval "stuff ' '" writebuf "exec sh -c 'xsel -n < /tmp/screen-exchange'"
+bindkey -m ^[w eval "stuff ' '" writebuf "exec sh -c 'xsel < /tmp/screen-exchange'"
+
+
+
+# backtick 1 60 60 uptime
+# hardstatus alwayslastline "%{.bW}%-w%{.rW}%n %t%{-}%+w %=%{..G} Load:%l %H %{..Y} %d/%m %C%a "
+# autodetach on
+# vbellwait 120
+# termcapinfo xterm|xterms|xs|rxvt ti@:te@
+# vbell off
+# nethack on
+# hardstatus alwayslastline
+
+# # Turns off alternate screen switching in xterms,
+# # so that text in screen will go into the xterm's scrollback buffer:
+# termcapinfo xterm* ti@:te@
+# altscreen on
+
+# # Log 10000 lines
+# defscrollback 10000
+
+# Turns off alternate screen switching in xterms,
+# so that text in screen will go into the xterm's scrollback buffer:
+#termcapinfo xterm* ti@:te@
+# Log 10000 lines
+
+# # http://snarfed.org/space/Emacs%20keybindings%20in%20GNU%20screen%27s%20copy-scrollback%20mode
+# # emacs keybindings for navigation in copy mode
+# markkeys ^B=Y:^F=V:h=^B:l=^F:0=^A:$=^E
+
+# # C-space sets mark. markkeys does it in screen 4.0 and higher, but 3.9x
+# # needs the bindkey command. (note the ^@ escape sequence for C-space.)
+# markkeys ' '=^@
+# # bindkey -m ^@ stuff ' '
+
+# # page up and page down
+# bindkey -m -k kP stuff Y
+# bindkey -m -k kN stuff V
+
+# # failed attempt to make C-space work in i-search too
+# # bindkey -m ^@ eval "stuff \033" "stuff ^@"
+
+# # special hack for C-e, since it should go *past*
+# # the last char. -m means this is for copy mode only.
+# bindkey -m ^e stuff "$^f"
+
+# # C-g and other keys just quit copy mode. Esc does nothing.
+# markkeys \033=\015=^G=^D=h=j=k=l=H=M=L=G=g=y=c=v=a=x=b=e=B=E=w
+# markkeys @=\033
+
+# # control arrows move by words. (set B, e, and w to F keys so that i can
+# # use them to move by words, but they themselves still quit copy mode.)
+# markkeys B=[:E=]:b={:e=}:w=>
+# bindkey -m ^[Od stuff {  #"[[}"
+# bindkey -m ^[Oc stuff ]  #"}]^f"
+
+# # http://snarfed.org/space/synchronizing%20GNU%20screen%27s%20paste%20buffer%20and%20the%20X%20selection
+# # set the second mark, write to the screen-exchange
+# # file, and use xsel to synchronize the paste buffer
+# # with the X selection.
+# bindkey -m > eval "stuff ' '" writebuf "exec sh -c 'xsel -n < /tmp/screen-exchange'"

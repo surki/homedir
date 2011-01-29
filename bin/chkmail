@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# Right now only syncing gmail, everything else is sync'd in gmail, so just check for gmail
+
+# Read username/password from offlineimaprc file (trim it to 
+gmail_login=`grep -Ei '(remoteuser.*@gmail.com)' ~/.offlineimaprc | awk -F'=' '{ gsub(/^[ \t]+/,"",$2); gsub(/@gmail.com.*/,"",$2); print $2 }'`
+gmail_password=`grep -A4 -Ei '(remoteuser.*@gmail.com)' ~/.offlineimaprc | awk -F'=' '/remotepass/ { gsub(/^[ \t]+/,"",$2); gsub(/[ ]+$/,"",$2); print $2;}'`
+
+unread="$(wget --secure-protocol=TLSv1 --timeout=3 -t 1 -q -O - https://${gmail_login}:${gmail_password}@mail.google.com/mail/feed/atom --no-check-certificate | sed -n "s/<fullcount>\(.*\)<\/fullcount>/\1/p")"
+unread=${unread:-0}
+
+echo $unread

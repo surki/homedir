@@ -1,0 +1,11 @@
+*XTerm*printerAutoClose: true
+*XTerm*printerCommand: /home/suresh/bin/notifier
+
+XTerm*foreground:       green
+XTerm*background:       black
+XTerm*font:             7x13bold
+
+! Emacs.reverseVideo:     true
+! Emacs.font:             7x13bold
+
+Emacs.font: Monospace-10

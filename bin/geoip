@@ -1,0 +1,9 @@
+#!/bin/bash
+
+#TODO: Clean up the hack
+wget -qO - http://www.geoiptool.com/en/?IP=$1 |
+    grep -Ei -a2 '(host name|ip address|country|region|city)' | 
+    grep -iE '(td)' | 
+    sed -e :a -e 's/<[^>]*>//g' | 
+    sed '$!N;s/\n//' | 
+    awk -F':' '{gsub(/^[ \t]+/,"",$1); gsub(/^[ \t]+/,"",$2); printf "%-15s: %s\n", $1, $2 }'

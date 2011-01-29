@@ -1,0 +1,54 @@
+#!/bin/bash
+
+uname=$1
+
+while getopts ":u:a:s:v" options; do
+  case $options in
+    u ) uname=$OPTARG;;
+    a ) attrs=$OPTARG;;
+    s ) searchattr=$OPTARG;;
+    v ) att=ALL;;
+    h ) echo $usage;;
+    \? ) echo $usage
+         exit 1;;
+    * ) echo $usage
+          exit 1;;
+  esac
+done
+
+if [ $# -eq 1 ]; then
+  ldapsearch -LLL "$uname" name title department description mail l st telephoneNumber manager mobile msRTCSIP-PrimaryUserAddress mailNickname directReports| grep -v '# refldap.*'
+fi
+
+if [ $uname ]; then
+  if [ $attrs ]; then
+    echo attrs is "$attrs"
+    ldapsearch -x -LLL "(uid=$uname)" $attrs
+    exit
+  fi
+                                                                                
+  if [ -z $att ]; then
+    ldapsearch -x -LLL "(uid=$uname)" givenname sn roomnumber telephonenumber ui 
+    exit
+  elif [ $att = "ALL" ]; then
+    ldapsearch -x -LLL "(uid=$uname)"
+  fi
+                                                                                
+fi
+
+if [ $searchattr ]; then
+  if [ $uname ]; then
+    echo "Use -u to find a username"
+    echo $usage
+    exit 1
+  fi
+                                                                                
+  if [ $attrs ]; then
+    ldapsearch -x -LLL "($searchattr)" $attrs
+  else
+    ldapsearch -x -LLL "($searchattr)" givenname sn roomnumber telephonenumber
+  fi
+                                                                                
+fi
+
+
