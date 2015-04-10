@@ -59,7 +59,7 @@
 
 ;; Lock screen
 (defcommand lock-screen () ()
-  (run-shell-command "xscreensaver-command -lock" t))
+  (run-shell-command "gnome-screensaver-command -l" t))
 
 ;; irc
 (defcommand irc () ()
@@ -70,7 +70,7 @@
 ;; Launch/Resume a screen session
 (defcommand gnuscreen () ()
   (run-or-raise
-   "urxvt -title gnuscreen -e byobu -U -dRR -S gnuscreen"
+   "urxvt -title gnuscreen -e byobu"
    '(:title "gnuscreen" :instance "urxvt" :class "URxvt")))
 
 ;; Launch/Resume a virtualbox screen session
@@ -106,12 +106,18 @@
    :all-screens t
    :all-groups t)
 
+;; "urxvt -title sandbox -cd /sandbox/sandbox.4.02.01.001/tools/ -e sudo ./go2sandbox"
 (defcommand gotosandbox  () ()
   (run-or-raise
-   "urxvt -title sandbox -cd /gamedev/gamecore/tools/ -e sudo ./g2s"
+   "urxvt -title sandbox -e screen -U -dRR -S sandbox -c ~/.screenrc.sandbox"
    '(:title "sandbox" :instance "urxvt" :class "URxvt"))
    :all-screens t
    :all-groups t)
+
+(defcommand cygwin () ()
+  (run-or-raise
+   "urxvt -title cygwin"
+   '(:title "cygwin" :instance "urxvt" :class "URxvt")))
 
 ;; fortune
 (defcommand fortune () ()
@@ -166,7 +172,7 @@
   (run-shell-command "gnome-panel &")	
 )
 
-(stumpwm:add-hook stumpwm:*start-hook* 'startup)
+;; (stumpwm:add-hook stumpwm:*start-hook* 'startup)
 
 ;; modeline stuff
 
@@ -211,6 +217,7 @@
 (define-key *root-map* (kbd "D") "torrents")
 (define-key *root-map* (kbd "b") "windowlist")
 (define-key *root-map* (kbd "B") "banish")
+(define-key *root-map* (kbd "w") "cygwin")
 
 ;; Clear rules
 (clear-window-placement-rules)

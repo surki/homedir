@@ -1,2 +1,3 @@
-clear lock
-add control = Caps_Lock
+keycode 66 = Control_L
+clear Lock
+add Control = Control_L

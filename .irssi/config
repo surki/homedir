@@ -13,7 +13,7 @@ servers = (
     address = "irc.cs.hut.fi";
     chatnet = "IRCnet";
     port = "6668";
-    autoconnect = "yes";
+    autoconnect = "no";
   },
   { address = "irc.efnet.org"; chatnet = "EFNet"; port = "6667"; },
   { 
@@ -124,12 +124,17 @@ channels = (
   },
   { name = "#conkeror"; chatnet = "freenode"; autojoin = "yes"; },
   { name = "#stumpwm"; chatnet = "freenode"; autojoin = "yes"; },
-  { name = "#iphonelinux"; chatnet = "iphonenet"; autojoin = "yes"; },
-  { name = "#openwrt"; chatnet = "freenode"; autojoin = "yes"; },
-  { name = "#openwrt-devel"; chatnet = "freenode"; autojoin = "yes"; },
-  { name = "#embedded-dev"; chatnet = "freenode"; autojoin = "yes"; },
-  { name = "#philosophy"; chatnet = "freenode"; autojoin = "yes";},
-  { name = "#nitdroid"; chatnet = "freenode"; autojoin = "yes"; } 
+  { name = "#xorg"; chatnet = "freenode"; autojoin = "yes"; },
+  { name = "#xorg-devel"; chatnet = "freenode"; autojoin = "yes"; },
+  { name = "#wayland"; chatnet = "freenode"; autojoin = "yes"; },
+  { name = "#intel-gfx"; chatnet = "freenode"; autojoin = "yes"; },
+  { name = "#nvidia"; chatnet = "freenode"; autojoin = "yes"; },
+  { name = "#iphonelinux"; chatnet = "iphonenet"; autojoin = "no"; },
+  { name = "#openwrt"; chatnet = "freenode"; autojoin = "no"; },
+  { name = "#openwrt-devel"; chatnet = "freenode"; autojoin = "no"; },
+  { name = "#embedded-dev"; chatnet = "freenode"; autojoin = "no"; },
+  { name = "#nitdroid"; chatnet = "freenode"; autojoin = "no"; },
+  { name = "#btrfs"; chatnet = "freenode"; autojoin = "no"; }
 );
 
 aliases = {
@@ -304,7 +309,7 @@ settings = {
     autolog = "yes";
     autolog_path = "~/.irssi/irclogs/$tag/$0.log";
   };
-  "irc/core" = { alternate_nick = "surki_"; };
+  "irc/core" = { alternate_nick = "surki_"; usermode = "+x"; };
 };
 ignores = (
   { mask = "crap"; level = "ALL"; },

@@ -209,7 +209,8 @@ define_webjump("youtube", "http://www.youtube.com/results?search_query=%s&search
 // Make current buffer readable
 // http://lab.arc90.com/experiments/readability/
 
-function()
+/*
+function ()
 {
     readConvertLinksToFootnotes=false
     readStyle='style-newspaper'
@@ -232,6 +233,7 @@ function()
     _readability_print_css.type='text/css'
     document.getElementsByTagName('head')[0].appendChild(_readability_print_css)
 }
+*/
 
 interactive("readability_arc90",
             "Readability is a simple tool that makes reading on the web more enjoyable by removing the clutter around what you are reading",
@@ -321,10 +323,35 @@ define_key(content_buffer_normal_keymap, "b", "google-bookmark");
 
 interactive("viewtext",
             "viewtext.org",
-            function viewtext_org(I) {
+            function viewtext_org(I)
+            {
                 var window = I.window;
                 var document = window.buffers.current.document;
                 window.location = 'http://viewtext.org/article?url=' + encodeURIComponent(document.location);
             });
+
+//--------------------------------------------------------------------------------
+
+// http://www.mozdev.org/pipermail/conkeror/2009-February/001334.html
+// select text and google it.  See also "**c" for selecting text
+interactive("search-clipboard-contents",
+            "Search in Google the content of the X clipboard (the selected text)",
+            "find-url",
+            $browser_object=
+            function(I) {
+                return "g "+ read_from_x_primary_selection();
+            }
+           );
+
+interactive("search-clipboard-contents-doublequoted",
+            "Search inGoogle the content of the X clipboard (the selected text) as a fixed string",
+            "find-url",
+            $browser_object=
+            function(I) {
+                return "g \""+ read_from_x_primary_selection()+"\"";
+            }
+           );
+define_key(content_buffer_normal_keymap, "w", "search-clipboard-contents");
+define_key(content_buffer_normal_keymap, "W", "search-clipboard-contents-doublequoted");
 
 //--------------------------------------------------------------------------------

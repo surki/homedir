@@ -12,6 +12,11 @@ URxvt.perl-ext-common: default,matcher
 URxvt.urlLauncher: conkeror
 URxvt.matcher.rend.0: Uline fg8 bg1
 URxvt.searchable-scrollback: M-?
+! :Bind C-0, C-+ and C-= to activate small, medium, and big font size resp.     
+URxvt.keysym.C-0: command:\033]710;-*-dina-medium-r-normal--13-*-*-*-*-*-*-*\007
+URxvt.keysym.C-minus: command:\033]710;-*-dina-medium-r-normal--15-*-*-*-*-*-*-*\007
+URxvt.keysym.C-equal: command:\033]710;-*-dina-medium-r-normal--16-*-*-*-*-*-*-*\007
+
 ! URxvt*keysym.C-Ret: \033<C-return>
 ! URxvt.keysym.M-C-1: command:\033]710;suxuseuro\007\033]711;suxuseuro\007
 ! URxvt.keysym.M-C-2: command:\033]710;9x15bold\007\033]72;9x15bold\007
