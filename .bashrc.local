@@ -1,15 +1,15 @@
 # Directory bookmarks
 #source /etc/cdargs-bash.sh
 
-export PATH=$PATH:~/bin:/usr/sbin/:/sbin/:
+export PATH=$PATH:~/bin:/usr/sbin/:/sbin/:/usr/local/go/bin
 
 export GREP_OPTIONS='--color=auto'
 export LS_OPTIONS='--color=auto'
 export PS1='\[\e[1;32m\][\u@\h \W]\$\[\e[0m\] '
 #export LS_COLORS="di=01;36:ln=01;34"
 
-export GTAGSLIBPATH=/usr/src/glibc
-export GTAGSFORCECPP=1
+export GTAGSLIBPATH=/usr/src/glibc:/usr/src/linux
+#export GTAGSFORCECPP=1
 
 xset b off
 xset b 0 0 0
