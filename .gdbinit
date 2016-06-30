@@ -1,8 +1,17 @@
+set auto-load safe-path /
+
 set history filename ~/.gdb_history
 set history save on
 set history expansion on
 # For Mono/Unity
 handle SIGXCPU SIG33 SIG35 SIGPWR nostop noprint
+
+define evalr
+  call(rb_p(rb_eval_string_protect($arg0,(int*)0)))
+end
+document evalr
+   Evaluate an arbitrary Ruby expression from current gdb context.
+end
 
 # For STL
 # python
