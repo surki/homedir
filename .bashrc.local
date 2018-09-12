@@ -3,6 +3,9 @@
 
 export PATH=$PATH:~/bin:/usr/sbin/:/sbin/:/usr/local/go/bin
 
+export GOPATH=~/go
+PATH=$PATH:${GOPATH//://bin:}/bin
+
 export LS_OPTIONS='--color=auto'
 export PS1='\[\e[1;32m\][\u@\h \W]\$\[\e[0m\] '
 #export LS_COLORS="di=01;36:ln=01;34"
@@ -18,9 +21,15 @@ shopt -s histappend
 xset b off
 xset b 0 0 0
 
-alias qemacs='emacs -Q'
-alias qemacsnw='emacs -Q -nw'
-export EDITOR="qemacs"
+export EDITOR="emacs -Q"
+
+alias cs="xclip -selection clipboard"
+alias vs="xclip -o -selection clipboard"
+
+export FUCHSIA_ROOT=/home/suresh/src/fuchsia/fuchsia/
+function fuchsia() {
+  source $FUCHSIA_ROOT/scripts/env.sh && envprompt && fgo && fset x86-64 "$@"
+}
 
 set bell-style visible
 

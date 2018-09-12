@@ -1,11 +1,17 @@
 alt + shift + e
-    xdotool search --name "emacs@${HOSTNAME}" windowactivate
+    xdotool search --onlyvisible --class "Emacs" windowactivate
 
 alt + shift + c
-    xdotool search --name "${USER}@${HOSTNAME}.*byobu" windowactivate
+    xdotool search --onlyvisible --name " - byobu$" windowactivate
 
 alt + shift + w
-    xdotool search --name ".* Mozilla Firefox" windowactivate
+    xdotool search --onlyvisible --class "Firefox" windowactivate
 
 alt + shift + g
-    xdotool search --name ' - Chromium' windowactivate
+    xdotool search --onlyvisible --class 'Chromium' windowactivate
+
+alt + shift + s
+    xdotool search --onlyvisible --name '(All-In-One Messenger| - Chat$)' windowactivate
+
+alt + shift + v
+    xdotool search --onlyvisible --class 'code - oss' windowactivate
